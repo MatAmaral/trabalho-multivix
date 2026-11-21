@@ -1,0 +1,577 @@
+/*
+ * Design tokens da v5, compartilhados pelos dois pontos de entrada do CSS:
+ *
+ * - assets/src/app.css: telas novas (preflight + todas as utilities);
+ * - assets/src/layout.css: moldura do painel (reset e utilities em .v5-shell).
+ *
+ * A fonte de verdade é o DESIGN.md (raiz do repositório): nomes, valores e
+ * contrastes vêm de lá. Mudou o design? Altere primeiro o DESIGN.md, depois
+ * este arquivo.
+ *
+ * Só tokens: além das variáveis em :root e .dark, nada aqui gera regra para
+ * elementos.
+ */
+
+/*
+ * Modo escuro por classe: <html class="dark">. O servidor aplica a classe no
+ * modo escuro, e o assets/js/tema.js no modo "sistema". Ver tema_helper.php.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens
+ * -------------
+ * Duas camadas:
+ *
+ * 1. Variáveis cruas (--os-*), definidas em :root e redefinidas em .dark.
+ *    Só elas mudam entre os modos claro e escuro (DESIGN.md, "Panel Dark
+ *    Mode").
+ * 2. Tokens do Tailwind (@theme). Os que mudam com o modo apontam para as
+ *    variáveis cruas; com `inline`, a utility usa var(--os-*) direto, então
+ *    bg-surface acompanha o modo sem precisar de dark:bg-...
+ *
+ * A paleta padrão do Tailwind (bg-white, text-gray-500, bg-black/50...) está
+ * desligada: só existem as cores abaixo. Para uma cor nova, ela entra antes
+ * no DESIGN.md.
+ *
+ * `static` faz o Tailwind emitir as variáveis mesmo que nenhuma view use a
+ * utility ainda: o CSS escrito à mão (layout) pode usar var(--color-surface).
+ *
+ * Utilities mais usadas (nome do DESIGN.md entre parênteses)
+ * ---------------------------------------------------------
+ * Superfícies  bg-bg (fundo da aplicação) · bg-surface (cards, sidebar, topbar)
+ *              · bg-surface-subtle (cabeçalho de tabela, hover, campo
+ *              desabilitado)
+ * Texto        text-text ({colors.ink} / {colors.on-dark}) · text-muted
+ *              ({colors.ink-muted} / {colors.on-dark-muted}) · text-disabled
+ * Bordas       border-border (cards, divisores) · border-input
+ *              ({colors.hairline-input}, borda de campo, 3:1)
+ * Campos       bg-field (branco / #1f1633 no escuro) · focus:shadow-field-focus
+ * Ação         bg-primary + text-on-primary (rótulo sempre ink, nunca branco)
+ *              · hover:bg-primary-hover · active:bg-primary-pressed
+ *              · bg-primary-tint (fundo do item ativo) · text-primary-strong
+ *              (laranja como texto ou link)
+ * Status       text-{estado}-ink sobre bg-{estado}-soft, para success,
+ *              warning, danger, info, progress e neutral; bg-{estado} é a cor
+ *              base (ponto, ícone, bg-danger do botão de perigo)
+ * Foco         outline-ring ({colors.ring-focus}, #3B82F6), 3px
+ * Tipografia   text-body-md, text-label-md, text-caption, text-heading-xl,
+ *              text-button-cap (+ uppercase), font-display, font-mono...
+ * Forma        rounded-xs..rounded-xxl e rounded-full; shadow-elev-1..4
+ *
+ * Espaçamento: a escala do DESIGN.md (2, 4, 8, 12, 16, 24, 32 e 96px) já é a
+ * do Tailwind: p-0.5, p-1, p-2, p-3, p-4, p-6, p-8, p-24.
+ */
+@theme inline static {
+  --color-*: initial;
+
+  /* Superfícies, texto e bordas (mudam com o modo) */
+  --color-bg: var(--os-bg);
+  --color-surface: var(--os-surface);
+  --color-surface-subtle: var(--os-surface-subtle);
+  --color-text: var(--os-text);
+  --color-muted: var(--os-muted);
+  --color-border: var(--os-border);
+  --color-input: var(--os-input);
+  --color-field: var(--os-field);
+  --color-disabled: var(--os-disabled);
+  --color-disabled-bg: var(--os-disabled-bg);
+
+  /*
+   * Ação: uma cor só, o laranja #F37338. Com branco dá 2,87:1 (reprova), com
+   * o ink dá 6,00:1, por isso o rótulo é sempre text-on-primary.
+   */
+  --color-primary: var(--os-primary);
+  --color-primary-hover: var(--os-primary-hover);
+  --color-primary-pressed: var(--os-primary-pressed);
+  --color-on-primary: var(--os-on-primary);
+  /* Ink fixo, para texto sobre preenchimentos claros que não mudam com o modo (button-inverted). */
+  --color-ink: #1f1633;
+  --color-primary-tint: var(--os-primary-tint);
+  --color-primary-strong: var(--os-primary-strong);
+
+  /* Sidebar: tokens próprios para os temas de cor (data-tema) escurecerem a
+     sidebar sem mexer no menu (ver .v5-sidebar no fim do arquivo). */
+  --color-sidebar: var(--os-sidebar-bg);
+
+  /* Foco: o único azul do sistema. Use outline-ring, opaco: com 50% de alfa o contraste cai para cerca de 1,8:1. */
+  --color-ring: var(--os-ring);
+
+  /*
+   * Status. A base é fixa nos dois modos; -ink (texto) e -soft (fundo) mudam
+   * com o modo. Pills e alertas usam sempre text-{estado}-ink sobre
+   * bg-{estado}-soft. O botão de perigo é bg-danger com text-on-dark nos dois
+   * modos (4,83:1).
+   */
+  --color-success: #15803d;
+  --color-success-ink: var(--os-success-ink);
+  --color-success-soft: var(--os-success-soft);
+  --color-warning: #a16207;
+  --color-warning-ink: var(--os-warning-ink);
+  --color-warning-soft: var(--os-warning-soft);
+  --color-danger: #dc2626;
+  --color-danger-ink: var(--os-danger-ink);
+  --color-danger-soft: var(--os-danger-soft);
+  --color-info: #0369a1;
+  --color-info-ink: var(--os-info-ink);
+  --color-info-soft: var(--os-info-soft);
+  --color-progress: #6a5fc1;
+  --color-progress-ink: var(--os-progress-ink);
+  --color-progress-soft: var(--os-progress-soft);
+  --color-neutral: #79628c;
+  --color-neutral-ink: var(--os-neutral-ink);
+  --color-neutral-soft: var(--os-neutral-soft);
+  /* Cores por status (#3044): azul-escuro (Finalizado) e roxo (Faturado) têm
+     cor própria, além das variantes semânticas. */
+  --color-azulescuro: #1e40af;
+  --color-azulescuro-ink: var(--os-azulescuro-ink);
+  --color-azulescuro-soft: var(--os-azulescuro-soft);
+  --color-roxo: #9333ea;
+  --color-roxo-ink: var(--os-roxo-ink);
+  --color-roxo-soft: var(--os-roxo-soft);
+
+  /* Marca e superfícies de entrada (login, área do cliente): fixas */
+  --color-canvas-dark: #1f1633;
+  --color-night: #150f23;
+  --color-on-dark: #ffffff;
+  --color-on-dark-muted: rgb(255 255 255 / 72%);
+  --color-on-dark-faint: rgb(255 255 255 / 18%);
+  --color-hairline-violet: #362d59;
+  --color-hairline-cool: #cfcfdb;
+  --color-hairline-cloud: #e5e7eb;
+  --color-press-light: #f0f0f0;
+  --color-ink-press: #1a1a1a;
+  --color-accent-lime: #c2ef4e;
+  --color-accent-pink: #fa7faa;
+  --color-accent-violet: #6a5fc1;
+  --color-accent-violet-deep: #422082;
+  --color-accent-violet-mid: #79628c;
+  --color-backdrop: rgb(21 15 35 / 55%);
+
+  /* Tipografia (@font-face em assets/src/fonts.css, arquivos em assets/vendor/fonts) */
+  --font-sans: "Rubik", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-display: "Space Grotesk", "Rubik", system-ui, sans-serif;
+  --font-mono: Monaco, Menlo, "Ubuntu Mono", monospace;
+
+  /*
+   * Escala tipográfica do DESIGN.md: text-{token} aplica tamanho, entrelinha,
+   * peso e espaçamento. Caixa alta não é token: some `uppercase` em
+   * button-cap, eyebrow e micro-cap. display-* e heading-xl usam font-display.
+   */
+  --text-display-hero: 5.5rem;
+  --text-display-hero--line-height: 1.2;
+  --text-display-hero--font-weight: 700;
+  /* Degrau do display-hero no celular (DESIGN.md: 88px → 60px → 48px). */
+  --text-display-hero-sm: 3rem;
+  --text-display-hero-sm--line-height: 1.2;
+  --text-display-hero-sm--font-weight: 700;
+  --text-display-large: 3.75rem;
+  --text-display-large--line-height: 1.1;
+  --text-display-large--font-weight: 500;
+  --text-heading-xl: 1.875rem;
+  --text-heading-xl--line-height: 1.2;
+  --text-heading-xl--font-weight: 500;
+  --text-heading-lg: 1.6875rem;
+  --text-heading-lg--line-height: 1.25;
+  --text-heading-lg--font-weight: 500;
+  --text-heading-md: 1.5rem;
+  --text-heading-md--line-height: 1.25;
+  --text-heading-md--font-weight: 500;
+  --text-heading-sm: 1.25rem;
+  --text-heading-sm--line-height: 1.25;
+  --text-heading-sm--font-weight: 600;
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 2;
+  --text-body-lg--font-weight: 400;
+  --text-body-strong: 1rem;
+  --text-body-strong--line-height: 1.5;
+  --text-body-strong--font-weight: 600;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5;
+  --text-body-md--font-weight: 400;
+  --text-label-md: 1rem;
+  --text-label-md--line-height: 1.5;
+  --text-label-md--font-weight: 500;
+  --text-eyebrow: 0.9375rem;
+  --text-eyebrow--line-height: 1.4;
+  --text-eyebrow--font-weight: 500;
+  --text-eyebrow--letter-spacing: 0.2px;
+  --text-button-cap: 0.875rem;
+  --text-button-cap--line-height: 1.14;
+  --text-button-cap--font-weight: 700;
+  --text-button-cap--letter-spacing: 0.2px;
+  --text-button-cap-light: 0.875rem;
+  --text-button-cap-light--line-height: 1.29;
+  --text-button-cap-light--font-weight: 500;
+  --text-button-cap-light--letter-spacing: 0.2px;
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.43;
+  --text-caption--font-weight: 400;
+  --text-micro-cap: 0.625rem;
+  --text-micro-cap--line-height: 1.8;
+  --text-micro-cap--font-weight: 600;
+  --text-micro-cap--letter-spacing: 0.25px;
+  --text-code: 1rem;
+  --text-code--line-height: 1.5;
+  --text-code--font-weight: 400;
+
+  /*
+   * Raios do DESIGN.md (substituem os padrões do Tailwind de mesmo nome).
+   * rounded-control (= md) e rounded-card (= xl) continuam como apelidos.
+   */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-xxl: 18px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-pill: 9999px;
+
+  /*
+   * Elevação (DESIGN.md, "Elevation & Depth"). Cards são planos (nível 0) e
+   * se separam pela borda; shadow-overlay é o nível 2 de modais, menus e
+   * toasts. No escuro não há sombra em cards.
+   */
+  --shadow-elev-1: 0 2px 8px 0 rgb(0 0 0 / 8%);
+  --shadow-elev-2: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+  --shadow-elev-3: 0 0 8px 6px rgb(21 15 35);
+  --shadow-elev-4: 0 0.5rem 1.5rem rgb(0 0 0 / 18%);
+  --shadow-field-focus: inset 0 2px 10px rgb(0 0 0 / 15%);
+  --shadow-card: var(--os-shadow-card);
+  --shadow-overlay: var(--os-shadow-overlay);
+
+  /* Medidas do layout (DESIGN.md, sidebar e topbar) */
+  --spacing-sidebar: 15.75rem;
+  --spacing-sidebar-recolhida: 4.75rem;
+  --spacing-topbar: 4rem;
+}
+
+@layer base {
+  /* Modo claro (padrão). Contrastes conferidos no DESIGN.md. */
+  :root {
+    color-scheme: light;
+
+    --os-bg: #ffffff;
+    --os-surface: #ffffff;
+    --os-surface-subtle: #f6f5f9;
+    --os-text: #1f1633;
+    --os-muted: #5b5470;
+    --os-border: #e5e7eb;
+    --os-input: #8a849c;
+    --os-field: #ffffff;
+    --os-disabled: #8a849c;
+    --os-disabled-bg: #e5e7eb;
+    --os-primary-tint: #feeee7;
+    --os-primary-strong: #b34d1d;
+
+    /* Cor de ação do tema padrão (laranja). Os temas (data-tema) a trocam. */
+    --os-primary: #f37338;
+    --os-primary-hover: #f47e48;
+    --os-primary-pressed: #db6230;
+    --os-on-primary: #1f1633;
+
+    /* Sidebar: por padrão igual ao conteúdo (nenhuma mudança visual). */
+    --os-sidebar-bg: var(--os-surface);
+    --os-sidebar-hover: var(--os-surface-subtle);
+    --os-sidebar-text: var(--os-text);
+    --os-sidebar-muted: var(--os-muted);
+    --os-sidebar-border: var(--os-border);
+    --os-sidebar-active-bg: var(--os-primary-tint);
+    --os-sidebar-active-text: var(--os-primary-strong);
+    --os-sidebar-accent: var(--os-primary);
+    --os-sidebar-accent-ink: var(--os-on-primary);
+    --os-sidebar-ring: #3b82f6;
+    --os-ring: #3b82f6;
+
+    --os-success-ink: #136234;
+    --os-success-soft: #c9ecd5;
+    --os-warning-ink: #8a5207;
+    --os-warning-soft: #f6e3bf;
+    --os-danger-ink: #b31818;
+    --os-danger-soft: #f8d2d2;
+    --os-info-ink: #0a5a86;
+    --os-info-soft: #cde4f6;
+    --os-progress-ink: #443a93;
+    --os-progress-soft: #ddd8f7;
+    --os-neutral-ink: #4b4560;
+    --os-neutral-soft: #e4ddec;
+    --os-azulescuro-ink: #1e3a8a;
+    --os-azulescuro-soft: #d3ddf5;
+    --os-roxo-ink: #6b21a8;
+    --os-roxo-soft: #ecd9fb;
+
+    --os-shadow-card: none;
+    --os-shadow-overlay: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+  }
+
+  /*
+   * Modo escuro do painel: a paleta violeta do DESIGN.md, na tela inteira.
+   * .superficie-entrada é o card escuro das telas de entrada (logins): usa a
+   * mesma paleta, qualquer que seja o modo, para rótulos, textos e alertas.
+   */
+  .dark,
+  .superficie-entrada {
+    color-scheme: dark;
+
+    --os-bg: #1f1633;
+    --os-surface: #150f23;
+    --os-surface-subtle: #1b1430;
+    --os-text: #ffffff;
+    --os-muted: rgb(255 255 255 / 72%);
+    --os-border: #362d59;
+    --os-input: #756d8a;
+    --os-field: #1f1633;
+    --os-disabled: rgb(255 255 255 / 45%);
+    --os-disabled-bg: rgb(255 255 255 / 8%);
+    --os-primary-tint: #391f26;
+    --os-primary-strong: #f37338;
+
+    --os-primary: #f37338;
+    --os-primary-hover: #f47e48;
+    --os-primary-pressed: #db6230;
+    --os-on-primary: #1f1633;
+
+    /* Sidebar no escuro: acompanha o conteúdo (tela inteira escura). */
+    --os-sidebar-bg: var(--os-surface);
+    --os-sidebar-hover: var(--os-surface-subtle);
+    --os-sidebar-text: var(--os-text);
+    --os-sidebar-muted: var(--os-muted);
+    --os-sidebar-border: var(--os-border);
+    --os-sidebar-active-bg: var(--os-primary-tint);
+    --os-sidebar-active-text: var(--os-primary-strong);
+    --os-sidebar-accent: var(--os-primary);
+    --os-sidebar-accent-ink: var(--os-on-primary);
+    --os-sidebar-ring: #3b82f6;
+    --os-ring: #3b82f6;
+
+    --os-success-ink: #4ade80;
+    --os-success-soft: #1d3032;
+    --os-warning-ink: #facc15;
+    --os-warning-soft: #3a2d21;
+    --os-danger-ink: #f87171;
+    --os-danger-soft: #391f2f;
+    --os-info-ink: #38bdf8;
+    --os-info-soft: #1b2b45;
+    --os-progress-ink: #b8b0f0;
+    --os-progress-soft: #2b244c;
+    --os-neutral-ink: #d6cfe0;
+    --os-neutral-soft: #2f253e;
+    --os-azulescuro-ink: #9db8fc;
+    --os-azulescuro-soft: #18233f;
+    --os-roxo-ink: #d0bcfb;
+    --os-roxo-soft: #2b1d45;
+
+    --os-shadow-card: none;
+    --os-shadow-overlay: 0 10px 30px rgb(0 0 0 / 55%);
+  }
+
+  /*
+   * Nas telas de entrada os campos continuam claros (DESIGN.md text-input:
+   * branco com borda hairline-input), também dentro do card escuro.
+   */
+  .superficie-entrada :where(input, select, textarea) {
+    color-scheme: light;
+
+    --os-text: #1f1633;
+    --os-muted: #5b5470;
+    --os-input: #8a849c;
+    --os-field: #ffffff;
+    --os-surface-subtle: #f6f5f9;
+    --os-disabled: #8a849c;
+    --os-disabled-bg: #e5e7eb;
+  }
+
+  /*
+   * Sidebar: redefine as variáveis --os-* com os tokens --os-sidebar-*.
+   * No tema padrão eles são iguais ao conteúdo, então nada muda. Os temas
+   * escurecem a sidebar do modo claro sem mexer no HTML do menu. O anel de
+   * foco também vem de um token, para ser claro sobre a sidebar escura. O
+   * acento (barra do item ativo e quadrado do logo, ambos bg-primary) também:
+   * a cor de ação do tema não tem contraste sobre a sidebar escura.
+   */
+  .v5-sidebar {
+    --os-surface: var(--os-sidebar-bg);
+    --os-surface-subtle: var(--os-sidebar-hover);
+    --os-text: var(--os-sidebar-text);
+    --os-muted: var(--os-sidebar-muted);
+    --os-border: var(--os-sidebar-border);
+    --os-primary-tint: var(--os-sidebar-active-bg);
+    --os-primary-strong: var(--os-sidebar-active-text);
+    --os-primary: var(--os-sidebar-accent);
+    --os-on-primary: var(--os-sidebar-accent-ink);
+    --os-ring: var(--os-sidebar-ring);
+  }
+
+  /*
+   * Temas de cor (DESIGN.md, Color Themes). O atributo data-tema no <html>
+   * (assets/js/tema.js) é independente do modo (.dark). Claro: troca a cor de
+   * ação e escurece a sidebar. Escuro: só a cor de ação (Grafite troca a
+   * paleta inteira). Valores de scripts/contraste-temas.mjs. As telas de
+   * entrada (.superficie-entrada) voltam à marca laranja. Um elemento com
+   * data-tema (as amostras de Configurações) também recebe a cor do tema.
+   */
+
+  :root[data-tema="azul"]:not(.dark),
+  :root:not(.dark) [data-tema="azul"] {
+    --os-primary: #2240b8;
+    --os-primary-hover: #2b4fd6;
+    --os-primary-pressed: #1a3190;
+    --os-on-primary: #ffffff;
+    --os-primary-strong: #2240b8;
+    --os-primary-tint: #e9ecf8;
+
+    --os-sidebar-bg: #121a45;
+    --os-sidebar-hover: #1c2762;
+    --os-sidebar-text: #eef1ff;
+    --os-sidebar-muted: #b7c0ea;
+    --os-sidebar-border: #1c2762;
+    --os-sidebar-active-bg: #2b4fd6;
+    --os-sidebar-active-text: #ffffff;
+    --os-sidebar-accent: #a3b4ff;
+    --os-sidebar-accent-ink: #1f1633;
+    --os-sidebar-ring: #93c5fd;
+  }
+
+  :root[data-tema="verde"]:not(.dark),
+  :root:not(.dark) [data-tema="verde"] {
+    --os-primary: #0b6b60;
+    --os-primary-hover: #0f7a6e;
+    --os-primary-pressed: #08524a;
+    --os-on-primary: #ffffff;
+    --os-primary-strong: #0b6b60;
+    --os-primary-tint: #e7f0ef;
+
+    --os-sidebar-bg: #0a3a35;
+    --os-sidebar-hover: #0f4d46;
+    --os-sidebar-text: #e8fbf8;
+    --os-sidebar-muted: #a9d9d2;
+    --os-sidebar-border: #0f4d46;
+    --os-sidebar-active-bg: #0f7a6e;
+    --os-sidebar-active-text: #ffffff;
+    --os-sidebar-accent: #5eead4;
+    --os-sidebar-accent-ink: #1f1633;
+    --os-sidebar-ring: #93c5fd;
+  }
+
+  :root[data-tema="violeta"]:not(.dark),
+  :root:not(.dark) [data-tema="violeta"] {
+    --os-primary: #7424c4;
+    --os-primary-hover: #8230d6;
+    --os-primary-pressed: #5f1da3;
+    --os-on-primary: #ffffff;
+    --os-primary-strong: #7424c4;
+    --os-primary-tint: #f1e9f9;
+
+    --os-sidebar-bg: #2b1257;
+    --os-sidebar-hover: #3d1c78;
+    --os-sidebar-text: #f6eeff;
+    --os-sidebar-muted: #cdb6ee;
+    --os-sidebar-border: #3d1c78;
+    --os-sidebar-active-bg: #7424c4;
+    --os-sidebar-active-text: #ffffff;
+    --os-sidebar-accent: #d5a6ff;
+    --os-sidebar-accent-ink: #1f1633;
+    --os-sidebar-ring: #93c5fd;
+  }
+
+  :root[data-tema="grafite"]:not(.dark),
+  :root:not(.dark) [data-tema="grafite"] {
+    --os-primary: #f37338;
+    --os-primary-hover: #f47e48;
+    --os-primary-pressed: #db6230;
+    --os-on-primary: #1f1633;
+    --os-primary-strong: #b34d1d;
+    --os-primary-tint: #feeee7;
+
+    --os-sidebar-bg: #1c1c1f;
+    --os-sidebar-hover: #2a2a2e;
+    --os-sidebar-text: #f4f4f5;
+    --os-sidebar-muted: #b4b4bc;
+    --os-sidebar-border: #2a2a2e;
+    --os-sidebar-active-bg: #f37338;
+    --os-sidebar-active-text: #1f1633;
+    --os-sidebar-accent: #f37338;
+    --os-sidebar-accent-ink: #1f1633;
+    --os-sidebar-ring: #93c5fd;
+  }
+
+  :root.dark[data-tema="azul"],
+  .dark [data-tema="azul"] {
+    --os-primary: #7f98ff;
+    --os-primary-hover: #93a9ff;
+    --os-primary-pressed: #6a85f2;
+    --os-on-primary: #1f1633;
+    --os-primary-strong: #a3b4ff;
+    --os-primary-tint: #262546;
+  }
+
+  :root.dark[data-tema="verde"],
+  .dark [data-tema="verde"] {
+    --os-primary: #2dd4bf;
+    --os-primary-hover: #5eead4;
+    --os-primary-pressed: #19b8a5;
+    --os-on-primary: #1f1633;
+    --os-primary-strong: #5eead4;
+    --os-primary-tint: #192f3c;
+  }
+
+  :root.dark[data-tema="violeta"],
+  .dark [data-tema="violeta"] {
+    --os-primary: #cf86ff;
+    --os-primary-hover: #da9dff;
+    --os-primary-pressed: #bd6ff0;
+    --os-on-primary: #1f1633;
+    --os-primary-strong: #dcaaff;
+    --os-primary-tint: #332246;
+  }
+
+  /* Amostra do tema padrão (Configurações): sempre o laranja, qualquer que seja o tema ativo. */
+  [data-tema="padrao"] {
+    --os-primary: #f37338;
+    --os-primary-hover: #f47e48;
+    --os-primary-pressed: #db6230;
+    --os-on-primary: #1f1633;
+  }
+
+  /* Grafite escuro: paleta neutra completa, ação laranja (tela inteira). */
+  :root.dark[data-tema="grafite"],
+  .dark [data-tema="grafite"] {
+    --os-bg: #171717;
+    --os-surface: #1f1f1f;
+    --os-surface-subtle: #27272a;
+    --os-text: #fafafa;
+    --os-muted: #a1a1aa;
+    --os-border: #3f3f46;
+    --os-input: #74747d;
+    --os-field: #27272a;
+
+    --os-primary: #f97316;
+    --os-primary-hover: #fb8c3a;
+    --os-primary-pressed: #ea670c;
+    --os-on-primary: #171717;
+    --os-primary-strong: #fb923c;
+    --os-primary-tint: #2a2015;
+
+    /* Status: -ink a 14% sobre #1f1f1f (sem o matiz violeta do modo escuro padrão). */
+    --os-success-soft: #253a2d;
+    --os-warning-soft: #3e371e;
+    --os-danger-soft: #3d2a2a;
+    --os-info-soft: #23353d;
+    --os-progress-soft: #34333c;
+    --os-neutral-soft: #39383a;
+    --os-azulescuro-soft: #31343e;
+    --os-roxo-soft: #38353e;
+  }
+
+  /* Entrada: sempre a marca, qualquer que seja o tema. */
+  :root[data-tema] .superficie-entrada {
+    --os-primary: #f37338;
+    --os-primary-hover: #f47e48;
+    --os-primary-pressed: #db6230;
+    --os-on-primary: #1f1633;
+    --os-primary-strong: #f37338;
+    --os-primary-tint: #391f26;
+  }
+}
