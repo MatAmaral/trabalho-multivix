@@ -14,7 +14,8 @@
 <head>
     <meta charset="UTF-8" />
     <title>OS</title>
-    <link rel="stylesheet" href="<?= base_url() ?>assets/dist/pdf.css" />
+    <?php // Caminho no disco, não URL: o mPDF roda sem acesso à rede e não buscaria o CSS por http. ?>
+    <link rel="stylesheet" href="<?= e(FCPATH . 'assets/dist/pdf.css') ?>" />
 </head>
 
 <body>
